@@ -3,7 +3,7 @@ Filename    : rmp_test_stm32f411ce_rvm.h
 Author      : fb 
 Date        : 23/03/2025
 Licence     : The Unlicense; see LICENSE for details.
-Description : The testbench for STM32F405RG, running in the RVM. 
+Description : The testbench for STM32F411CE, running in the RVM. 
               How to use this test header:
               1. Add relevant test file to the project.
               2. Add memory access permission as follows:
@@ -49,8 +49,26 @@ ISR Message queue                  : 1424 / 3332 / 1424
 ISR Blocking message queue         : 1578 / 3484 / 1572
 ISR RVM activation relay           : 2654 / 2656 / 2596
 
-GCC 13.2.1 -O3 (SysTick turned on, w/FPU context)
-TBD
+GCC 13.2 -O3 (SysTick turned on, w/FPU context)
+    ___   __  ___ ___
+   / _ \ /  |/  // _ \       Simple real-time kernel
+  / , _// /|_/ // ___/       Standard benchmark test
+ /_/|_|/_/  /_//_/
+====================================================
+Test (number in CPU cycles)        : AVG / MAX / MIN
+Yield                              : 276 / 1806 / 276
+Mailbox                            : 483 / 2082 / 482
+Semaphore                          : 410 / 2030 / 410
+FIFO                               : 204 / 1760 / 204
+Message queue                      : 613 / 2270 / 612
+Blocking message queue             : 855 / 2446 / 854
+Alarm combination (1/2/3/5/7)      : 736 / 2808 / 452
+Memory allocation/free pair        : 360 / 716 / 348
+ISR Mailbox                        : 1146 / 1146 / 1146
+ISR Semaphore                      : 1091 / 2650 / 1088
+ISR Message queue                  : 1222 / 1222 / 1222
+ISR Blocking message queue         : 1370 / 3678 / 1366
+ISR RVM activation relay           : 2157 / 2158 / 2128
 ******************************************************************************/
 
 /* Include *******************************************************************/
