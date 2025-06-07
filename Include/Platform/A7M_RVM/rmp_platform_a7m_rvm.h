@@ -89,7 +89,7 @@ typedef rmp_s32_t rmp_ret_t;
 #define RMP_INT_UNMASK()                RVM_Virt_Int_Unmask()
 /* Yield operations */
 #if(RMP_A7M_RVM_FAST_YIELD!=0U)
-#define RMP_YIELD()                     _RMP_A7M_RVM_Yield()
+#define RMP_YIELD()                     RMP_A7M_RVM_Yield()
 #define RMP_YIELD_ISR()                 RVM_Virt_Yield()
 #else
 #define RMP_YIELD()                     RVM_Virt_Yield()
@@ -203,6 +203,7 @@ RMP_EXTERN rmp_ptr_t _RMP_A7M_RVM_MSB_Get(rmp_ptr_t Value);
 RMP_EXTERN rmp_ptr_t _RMP_A7M_RVM_LSB_Get(rmp_ptr_t Value);
 RMP_EXTERN void _RMP_Start(rmp_ptr_t Entry,
                            rmp_ptr_t Stack);
+__RMP_EXTERN__ void RMP_A7M_RVM_Yield(void);
 RMP_EXTERN void _RMP_A7M_RVM_Yield(void);
 RMP_EXTERN void RVM_Virt_Yield(void);
 

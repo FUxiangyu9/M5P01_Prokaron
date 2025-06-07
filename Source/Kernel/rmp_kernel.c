@@ -810,6 +810,74 @@ void RMP_Sched_Unlock(void)
 }
 /* End Function:RMP_Sched_Unlock *********************************************/
 
+/* Function:RMP_Thd_Peek ******************************************************
+Description : See whom the next thread will be without switching to it. May only
+              be used when the scheduler is locked.
+Input       : None.
+Output      : None.
+Return      : volatile struct RMP_Thd* - The next thread to run.
+******************************************************************************/
+volatile struct RMP_Thd* RMP_Thd_Peek(void)
+{
+    rmp_cnt_t Word;
+    rmp_ptr_t Prio;
+    volatile struct RMP_Thd* Thread;
+    
+    /* Cache volatile current thread */
+    Thread=RMP_Thd_Cur;
+    
+    /* See which one is ready, and pick it */
+    Prio=RMP_PRIO_WORD_NUM-1U;
+    for(Word=(rmp_cnt_t)Prio;Word>=0;Word--)
+    {
+        if(RMP_Bitmap[Word]!=0U)
+        {
+            RMP_COV_MARKER();
+            
+            break;
+        }
+        else
+        {
+            RMP_COV_MARKER();
+            /* No action required */
+        }
+    }
+
+    /* There must be one, at least the initial thread must be ready at all moments! */
+    RMP_ASSERT(Word>=0);
+    Prio=(rmp_ptr_t)Word;
+    Prio=RMP_MSB_GET(RMP_Bitmap[Prio])+(Prio<<RMP_WORD_ORDER);
+
+    /* See if the current thread is the highest priority one */
+    if(Thread==(volatile struct RMP_Thd*)(RMP_Run[Prio].Next))
+    {
+        RMP_COV_MARKER();
+        
+        RMP_ASSERT(Thread->Prio==Prio);
+        
+        /* We are not the only one at this priority, pick the next one */
+        if(Thread->Run_Head.Next!=&RMP_Run[Prio])
+        {
+            RMP_COV_MARKER();
+            Thread=(volatile struct RMP_Thd*)(Thread->Run_Head.Next);
+        }
+        /* We are the only one */
+        else
+        {
+            RMP_COV_MARKER();
+            /* No action required */
+        }
+    }
+    else
+    {
+        RMP_COV_MARKER();
+        Thread=(volatile struct RMP_Thd*)(RMP_Run[Prio].Next);
+    }
+    
+    return Thread;
+}
+/* End Function:RMP_Thd_Peek *************************************************/
+
 /* Function:_RMP_Run_High *****************************************************
 Description : Get the highest priority thread that is ready. The return value
               will be written into the global variables. Note that providing a

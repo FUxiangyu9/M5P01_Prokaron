@@ -197,6 +197,17 @@ _RMP_A7M_RVM_LSB_Get    PROC
     POP                 {R0}                ;Load R0/XPSR/PC into R0/R1/R2
     LDR                 R1,[SP,#4*6]
     AND                 R1,#0xFFFFFDFF      ;Clear XPSR[9]
+    
+    TST                 R1,#0xF000
+    BNE                 .
+    ; we'll have to use a interrupt handler to restore the original state, given that the IT/ICI stuff is not repeatable.
+    ; but we're already stuck at this point, and what to do? current stuff is already phased out, and we're on a new stack now.
+    ; worst case, have to read the two instructions that follow, and execute them accordingly.
+    ; that is REALLY bad. can we possibly know the context type in advance? possibly very hard, then...
+    ; maybe, just look into the highest priority's ICI/IT in advance.
+    ; need to know who the next one is, which is problematic.
+    
+    
     LDR                 R2,[SP,#4*5]
     ORR                 R2,#0x00000001      ;Set PC[0]
     STR                 R1,[SP,#4*($SZ-4)]  ;Rearrange to H-PC-R0-XPSR-L
@@ -207,7 +218,7 @@ _RMP_A7M_RVM_LSB_Get    PROC
     ADD                 SP,#4*($SZ-8)
     ENDIF
     POP                 {R0}                ;Pop XPSR through R0
-    MSR                 XPSR,R0
+    MSR                 XPSR,R0    
     POP                 {R0,PC}             ;Pop R0 and PC
     MEND
                         
@@ -254,7 +265,7 @@ Stk_Basic_Done
     LDMIA               R0,{R1-R5}
     PUSH                {R1-R5}
 
-    BL                  RVM_Virt_Int_Mask   ;Mask interrupts
+    ;BL                  RVM_Virt_Int_Mask   ;Mask interrupts
     LDR                 R1,=RMP_SP_Cur      ;Save the SP to control block
     STR                 SP,[R1]
     BL                  _RMP_Run_High       ;Get the highest ready task

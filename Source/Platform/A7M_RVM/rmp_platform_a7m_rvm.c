@@ -283,6 +283,49 @@ void RMP_SysTick_Handler(void)
 }
 /* End Function:RMP_SysTick_Handler ******************************************/
 
+// This fix does not impact the Cortex-M0+ because it always abandon LDM/STMs and does
+// not have IT blocks. as a consequence, all of its operations are fully restartable.
+// explain why we chose this way : an alternative would be to complete all possible
+// instruction leftovers (IT blocks, LDMs, STMs, VLDMs, VSTMs, or even multi-cycle 
+// multiplications) manually, which is off the maintainability limits.
+void RMP_A7M_RVM_Yield(void)
+{
+    rmp_cnt_t Word;
+    volatile struct RMP_A7M_RVM_Stack* Stack;
+    volatile struct RMP_Thd* Thread;
+    
+    RVM_Virt_Int_Mask();
+    
+    /* Find the next thread that will be scheduled should we perform a context switch */
+    Thread=RMP_Thd_Peek();
+    if(Thread==RMP_Thd_Cur)
+    {
+        RVM_Virt_Int_Unmask();
+        return;
+    }
+    else
+    {
+        Stack=(volatile struct RMP_A7M_RVM_Stack*)(Thread->Stack);
+        
+        /* Skip OS-Managed FPU registers if we do have any */
+        if((Stack->LR_EXC&0x00000010U)==0U)
+        {
+            Stack=(volatile struct RMP_A7M_RVM_Stack*)(Thread->Stack+16*sizeof(rvm_ptr_t));
+        }
+        
+        /* See if the xPSR have ICI/IT bits set. If so, they can only be correctly restored
+         * by an exception return, otherwise we risk corrputing program logic or stack. */
+        if((Stack->XPSR&0x0600FC00U)!=0U)
+        {
+            RVM_Virt_Int_Unmask();
+            RVM_Virt_Yield();
+        }
+        /* The fast yield routine will unmask interrupts in the end */
+        else
+            _RMP_A7M_RVM_Yield();
+    }
+}
+
 /* End Of File ***************************************************************/
 
 /* Copyright (C) Evo-Devo Instrum. All rights reserved ***********************/
